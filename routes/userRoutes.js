@@ -1,0 +1,30 @@
+import express from 'express'
+import { admin, client, protect } from '../middleware/authMiddleware.js'
+import user from './../controllers/userController.js'
+import { userAddField, userLoginField, userUpdateField } from '../middleware/checkFields.js'
+
+const router = express.Router()
+
+// /api/users
+router
+  .route('/')
+  .get(protect, admin, user.getUsers)
+  .post(userAddField, user.register)
+  .put(protect, userUpdateField, user.update)
+  .delete(protect, user.delete)
+router.get('/profile', protect, user.getUser)
+router.post('/login', userLoginField, user.login)
+router.post('/client', protect, admin, userAddField, user.addClientByAdmin)
+router
+  .route('/client/:id')
+  .get(protect, admin, user.getClientByAdmin)
+  .put(protect, admin, userUpdateField, user.editClientByAdmin)
+  .delete(protect, admin, user.deleteClientByAdmin)
+router.post('/supplier', protect, client, userAddField, user.addSupplierByClient)
+router
+  .route('/supplier/:id')
+  .get(protect, client, user.getSupplierByClient)
+  .put(protect, client, userUpdateField, user.editSupplierByClient)
+  .delete(protect, client, user.deleteSupplierByClient)
+
+export default router
