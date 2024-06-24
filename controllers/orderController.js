@@ -1,6 +1,7 @@
 import expressAsyncHandler from 'express-async-handler'
 import Order from './../models/orderModel.js'
 import { validationResult } from 'express-validator'
+import { Types } from 'mongoose'
 
 const order = {
   /**
@@ -62,9 +63,40 @@ const order = {
    * @access  Private
    */
   getOrder: expressAsyncHandler(async (req, res) => {
-    await Order.findById(req.params.id)
+    await Order.aggregate([
+      { $match: { _id: new Types.ObjectId(req.params.id) } },
+      {
+        $lookup: {
+          from: 'suppliers',
+          localField: 'supplierId',
+          foreignField: '_id',
+          as: 'supplier',
+        },
+      },
+      { $unwind: { path: '$supplier', preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: '$perfumes', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'perfumes',
+          localField: 'perfumes.id',
+          foreignField: '_id',
+          as: 'perfumes.perfume',
+        },
+      },
+      { $unwind: { path: '$perfumes.perfume', preserveNullAndEmptyArrays: true } },
+      {
+        $group: {
+          _id: '$_id',
+          phone: { $first: '$phone' },
+          name: { $first: '$name' },
+          location: { $first: '$location' },
+          supplier: { $first: '$supplier' },
+          perfumes: { $push: { perfume: '$perfumes.perfume', qty: '$perfumes.qty' } },
+        },
+      },
+    ])
       .then(response => {
-        if (response) res.status(200).json({ data: response })
+        if (response[0]) res.status(200).json({ data: response[0] })
         else res.status(400).json({ message: 'Order not found', success: false })
       })
       .catch(error => res.status(400).json({ success: false, message: error.message }))
