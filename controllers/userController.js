@@ -49,7 +49,7 @@ const user = {
   register: expressAsyncHandler(async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
-      return res.status(400).json({ message: errors.array(), success: false })
+      return res.status(400).json({ messages: errors.array(), success: false })
     }
 
     const { phone, password } = req.body
@@ -59,7 +59,7 @@ const user = {
     if (userExists)
       res
         .status(400)
-        .json({ success: false, message: [{ msg: 'User already exists', param: 'phone' }] })
+        .json({ success: false, messages: [{ msg: 'User already exists', path: 'phone' }] })
     else {
       const hashedPassword = await bcryptjs.hash(password, salt)
       const user = await User.create({ phone, password: hashedPassword, role: 'client' })
@@ -77,7 +77,7 @@ const user = {
   login: expressAsyncHandler(async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
-      return res.status(400).json({ message: errors.array(), success: false })
+      return res.status(400).json({ messages: errors.array(), success: false })
     }
 
     const { phone, password } = req.body
@@ -88,7 +88,7 @@ const user = {
         res.status(200).json({ data: { token: generateToken(user._id) }, success: true })
       else res.status(400).json({ success: false, message: 'Phone or password wrong' })
     } else
-      res.status(400).json({ success: false, message: [{ msg: 'User not found', param: 'phone' }] })
+      res.status(400).json({ success: false, messages: [{ msg: 'User not found', path: 'phone' }] })
   }),
 
   /**
@@ -99,7 +99,7 @@ const user = {
   update: expressAsyncHandler(async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
-      return res.status(400).json({ message: errors.array(), success: false })
+      return res.status(400).json({ messages: errors.array(), success: false })
     }
 
     const user = await User.findById(req.user.id)
@@ -126,7 +126,7 @@ const user = {
             } else
               res.status(400).json({
                 success: false,
-                message: [{ msg: 'Current password is wrong', param: 'currentPassword' }],
+                messages: [{ msg: 'Current password is wrong', path: 'currentPassword' }],
               })
           })
           .catch(err => res.status(400).json({ success: false, message: err.message }))
@@ -157,7 +157,7 @@ const user = {
   addClientByAdmin: expressAsyncHandler(async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
-      return res.status(400).json({ message: errors.array(), success: false })
+      return res.status(400).json({ messages: errors.array(), success: false })
     }
 
     const { phone, password } = req.body
@@ -167,7 +167,7 @@ const user = {
         if (response)
           res
             .status(400)
-            .json({ success: false, message: [{ msg: 'User already exists', param: 'phone' }] })
+            .json({ success: false, messages: [{ msg: 'User already exists', path: 'phone' }] })
         else {
           const hashedPassword = await bcryptjs.hash(password, salt)
           const user = await User.create({
@@ -203,7 +203,7 @@ const user = {
   editClientByAdmin: expressAsyncHandler(async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
-      return res.status(400).json({ message: errors.array(), success: false })
+      return res.status(400).json({ messages: errors.array(), success: false })
     }
 
     await User.findOne({ _id: req.params.id, role: 'client' })
@@ -226,7 +226,7 @@ const user = {
               } else
                 res.status(400).json({
                   success: false,
-                  message: [{ msg: 'Current password is wrong', param: 'currentPassword' }],
+                  messages: [{ msg: 'Current password is wrong', path: 'currentPassword' }],
                 })
             })
             .catch(err => res.status(400).json({ success: false, message: err.message }))
@@ -261,7 +261,7 @@ const user = {
   addSupplierByClient: expressAsyncHandler(async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
-      return res.status(400).json({ message: errors.array(), success: false })
+      return res.status(400).json({ messages: errors.array(), success: false })
     }
 
     const { phone, password } = req.body
@@ -271,7 +271,7 @@ const user = {
         if (response)
           res
             .status(400)
-            .json({ success: false, message: [{ msg: 'User already exists', param: 'phone' }] })
+            .json({ success: false, messages: [{ msg: 'User already exists', path: 'phone' }] })
         else {
           const hashedPassword = await bcryptjs.hash(password, salt)
           const user = await User.create({
@@ -310,7 +310,7 @@ const user = {
   editSupplierByClient: expressAsyncHandler(async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
-      return res.status(400).json({ message: errors.array(), success: false })
+      return res.status(400).json({ messages: errors.array(), success: false })
     }
 
     await User.findOne({ _id: req.params.id, role: 'supplier' })
@@ -333,7 +333,7 @@ const user = {
               } else
                 res.status(400).json({
                   success: false,
-                  message: [{ msg: 'Current password is wrong', param: 'currentPassword' }],
+                  messages: [{ msg: 'Current password is wrong', path: 'currentPassword' }],
                 })
             })
             .catch(err => res.status(400).json({ success: false, message: err.message }))

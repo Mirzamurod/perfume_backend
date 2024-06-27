@@ -110,7 +110,7 @@ const order = {
   addOrder: expressAsyncHandler(async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
-      return res.status(400).json({ message: errors.array(), success: false })
+      return res.status(400).json({ messages: errors.array(), success: false })
     }
 
     if (!req.body.perfume.length)
@@ -133,7 +133,7 @@ const order = {
   editOrder: expressAsyncHandler(async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
-      return res.status(400).json({ message: errors.array(), success: false })
+      return res.status(400).json({ messages: errors.array(), success: false })
     }
 
     await Order.findById(req.params.id)

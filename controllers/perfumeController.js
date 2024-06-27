@@ -60,7 +60,7 @@ const perfume = {
   addPerfume: expressAsyncHandler(async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
-      return res.status(400).json({ message: errors.array(), success: false })
+      return res.status(400).json({ messages: errors.array(), success: false })
     }
 
     const { name } = req.body
@@ -70,7 +70,7 @@ const perfume = {
         if (response)
           res
             .status(400)
-            .json({ success: false, message: [{ msg: 'Perfume already exists', param: 'name' }] })
+            .json({ success: false, messages: [{ msg: 'Perfume already exists', path: 'name' }] })
         else {
           await Perfume.create({ ...req.body, userId: req.user.id, slug: slug(req.body.name) })
             .then(response => {
@@ -90,7 +90,7 @@ const perfume = {
   editPerfume: expressAsyncHandler(async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
-      return res.status(400).json({ message: errors.array(), success: false })
+      return res.status(400).json({ messages: errors.array(), success: false })
     }
 
     await Perfume.findById(req.params.id)
