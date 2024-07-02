@@ -37,7 +37,7 @@ const user = {
    * @access  Private
    */
   getUser: expressAsyncHandler(async (req, res) => {
-    if (!req.user) res.status(400).json({ success: false, message: 'User not found !!!' })
+    if (!req.user) res.status(400).json({ success: false, message: 'user_not_found' })
     else res.status(200).json({ data: req.user })
   }),
 
@@ -59,13 +59,13 @@ const user = {
     if (userExists)
       res
         .status(400)
-        .json({ success: false, messages: [{ msg: 'User already exists', path: 'phone' }] })
+        .json({ success: false, messages: [{ msg: 'user_already_exists', path: 'phone' }] })
     else {
       const hashedPassword = await bcryptjs.hash(password, salt)
       const user = await User.create({ phone, password: hashedPassword, role: 'client' })
 
-      if (user) res.status(201).json({ message: 'User added', success: true })
-      else res.status(400).json({ success: false, message: 'Invalid user data' })
+      if (user) res.status(201).json({ message: 'user_added', success: true })
+      else res.status(400).json({ success: false, message: 'invalid_user_data' })
     }
   }),
 
@@ -86,9 +86,9 @@ const user = {
     if (user) {
       if (await bcryptjs.compare(password, user.password))
         res.status(200).json({ data: { token: generateToken(user._id) }, success: true })
-      else res.status(400).json({ success: false, message: 'Phone or password wrong' })
+      else res.status(400).json({ success: false, message: 'phone_or_password_wrong' })
     } else
-      res.status(400).json({ success: false, messages: [{ msg: 'User not found', path: 'phone' }] })
+      res.status(400).json({ success: false, messages: [{ msg: 'user_not_found', path: 'phone' }] })
   }),
 
   /**
@@ -108,7 +108,7 @@ const user = {
     // Check User
     if (!user) {
       res.status(401)
-      throw new Error('User not found!!!')
+      throw new Error('user_not_found')
     } else {
       // Check Current Password
       if (currentPassword) {
@@ -122,17 +122,17 @@ const user = {
                 { ...req.body, password: hashedPassword },
                 { new: true }
               )
-              res.status(200).json({ success: true, message: 'User Updated' })
+              res.status(200).json({ success: true, message: 'user_updated' })
             } else
               res.status(400).json({
                 success: false,
-                messages: [{ msg: 'Current password is wrong', path: 'currentPassword' }],
+                messages: [{ msg: 'current_password_wrong', path: 'currentPassword' }],
               })
           })
           .catch(err => res.status(400).json({ success: false, message: err.message }))
       } else {
         await User.findByIdAndUpdate(req.user.id, req.body)
-        res.status(200).json({ success: true, message: 'User Updated' })
+        res.status(200).json({ success: true, message: 'user_updated' })
       }
     }
   }),
@@ -146,7 +146,7 @@ const user = {
     if (req.user) {
       await User.findByIdAndDelete(req.user.id)
       res.status(200).json({ success: true, message: 'success' })
-    } else res.status(400).json({ success: false, message: 'User not found' })
+    } else res.status(400).json({ success: false, message: 'user_not_found' })
   }),
 
   /**
@@ -167,7 +167,7 @@ const user = {
         if (response)
           res
             .status(400)
-            .json({ success: false, messages: [{ msg: 'User already exists', path: 'phone' }] })
+            .json({ success: false, messages: [{ msg: 'user_already_exists', path: 'phone' }] })
         else {
           const hashedPassword = await bcryptjs.hash(password, salt)
           const user = await User.create({
@@ -177,8 +177,8 @@ const user = {
             role: 'client',
           })
 
-          if (user) res.status(201).json({ message: 'Client added', success: true })
-          else res.status(400).json({ success: false, message: 'Invalid client data' })
+          if (user) res.status(201).json({ message: 'client_added', success: true })
+          else res.status(400).json({ success: false, message: 'invalid_client_data' })
         }
       })
       .catch(error => res.status(400).json({ message: error.message, success: false }))
@@ -192,7 +192,7 @@ const user = {
   getClientByAdmin: expressAsyncHandler(async (req, res) => {
     const user = await User.findById(req.params.id, { password: 0 })
     if (user && user.role === 'client') res.status(200).json({ data: user })
-    else res.status(400).json({ message: 'Client not found', success: false })
+    else res.status(400).json({ message: 'client_not_found', success: false })
   }),
 
   /**
@@ -219,20 +219,20 @@ const user = {
                   { ...req.body, password: hashedPassword },
                   { new: true }
                 )
-                  .then(() => res.status(200).json({ success: true, message: 'Client Updated' }))
+                  .then(() => res.status(200).json({ success: true, message: 'client_updated' }))
                   .catch(errorUpdated =>
                     res.status(400).json({ message: errorUpdated.message, success: false })
                   )
               } else
                 res.status(400).json({
                   success: false,
-                  messages: [{ msg: 'Current password is wrong', path: 'currentPassword' }],
+                  messages: [{ msg: 'current_password_wrong', path: 'currentPassword' }],
                 })
             })
             .catch(err => res.status(400).json({ success: false, message: err.message }))
         } else {
           await User.findByIdAndUpdate(response.id, req.body, { new: true })
-          res.status(200).json({ success: true, message: 'Client Updated' })
+          res.status(200).json({ success: true, message: 'client_updated' })
         }
       })
       .catch(error => res.status(400).json({ success: false, message: error.message }))
@@ -246,9 +246,8 @@ const user = {
   deleteClientByAdmin: expressAsyncHandler(async (req, res) => {
     await User.findByIdAndDelete(req.params.id)
       .then(response => {
-        if (response)
-          res.status(200).json({ message: 'Client successfully deleted', success: true })
-        else res.status(400).json({ success: false, message: 'Client not found' })
+        if (response) res.status(200).json({ message: 'client_deleted', success: true })
+        else res.status(400).json({ success: false, message: 'client_not_found' })
       })
       .catch(error => res.status(400).json({ message: error.message, success: false }))
   }),
@@ -271,7 +270,7 @@ const user = {
         if (response)
           res
             .status(400)
-            .json({ success: false, messages: [{ msg: 'User already exists', path: 'phone' }] })
+            .json({ success: false, messages: [{ msg: 'user_already_exists', path: 'phone' }] })
         else {
           const hashedPassword = await bcryptjs.hash(password, salt)
           const user = await User.create({
@@ -281,8 +280,8 @@ const user = {
             role: 'supplier',
           })
 
-          if (user) res.status(201).json({ message: 'Client added', success: true })
-          else res.status(400).json({ success: false, message: 'Invalid client data' })
+          if (user) res.status(201).json({ message: 'client_added', success: true })
+          else res.status(400).json({ success: false, message: 'invalid_client_data' })
         }
       })
       .catch(error => res.status(400).json({ message: error.message, success: false }))
@@ -297,7 +296,7 @@ const user = {
     await User.findById(req.params.id, { password: 0 })
       .then(response => {
         if (response) res.status(200).json({ data: response })
-        else res.status(400).json({ success: false, message: 'Supplier not found' })
+        else res.status(400).json({ success: false, message: 'supplier_not_found' })
       })
       .catch(error => res.status(400).json({ message: error.message, success: false }))
   }),
@@ -326,14 +325,14 @@ const user = {
                   { ...req.body, password: hashedPassword },
                   { new: true }
                 )
-                  .then(() => res.status(200).json({ success: true, message: 'Supplier Updated' }))
+                  .then(() => res.status(200).json({ success: true, message: 'supplier_updated' }))
                   .catch(errorUpdated =>
                     res.status(400).json({ message: errorUpdated.message, success: false })
                   )
               } else
                 res.status(400).json({
                   success: false,
-                  messages: [{ msg: 'Current password is wrong', path: 'currentPassword' }],
+                  messages: [{ msg: 'current_password_wrong', path: 'currentPassword' }],
                 })
             })
             .catch(err => res.status(400).json({ success: false, message: err.message }))
@@ -341,7 +340,7 @@ const user = {
           // } else
         } else {
           await User.findByIdAndUpdate(response.id, req.body, { new: true })
-          res.status(200).json({ success: true, message: 'Supplier Updated' })
+          res.status(200).json({ success: true, message: 'supplier_updated' })
         }
       })
       .catch(error => res.status(400).json({ success: false, message: error.message }))
@@ -355,9 +354,8 @@ const user = {
   deleteSupplierByClient: expressAsyncHandler(async (req, res) => {
     await User.findByIdAndDelete(req.params.id)
       .then(response => {
-        if (response)
-          res.status(200).json({ success: true, message: 'Supplier successfully deleted' })
-        else res.status(400).json({ success: false, message: 'Supplier not found' })
+        if (response) res.status(200).json({ success: true, message: 'supplier_deleted' })
+        else res.status(400).json({ success: false, message: 'supplier_not_found' })
       })
       .catch(error => res.status(400).json({ success: false, message: error.message }))
   }),

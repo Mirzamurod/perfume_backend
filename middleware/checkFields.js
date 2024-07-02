@@ -74,26 +74,6 @@ export const userUpdateField = [
     .bail()
     .isLength({ max: 16 })
     .withMessage('maximum_16_letters'),
-  // check('confirmNewPassword')
-  //   .if(check('currentPassword').exists())
-  //   .notEmpty()
-  //   .withMessage('confirm_password_required')
-  //   .bail()
-  //   .if(check('newPassword').exists())
-  //   .notEmpty()
-  //   .withMessage('confirm_password_required')
-  //   .bail()
-  //   .trim()
-  //   .isLength({ min: 8 })
-  //   .withMessage('minimum_8_letters')
-  //   .bail()
-  //   .isLength({ max: 16 })
-  //   .withMessage('maximum_16_letters')
-  //   .bail()
-  //   .custom((value, { req }) => {
-  //     if (value !== req.body.newPassword) throw new Error('not_same_confirm_password')
-  //     else return true
-  //   }),
 ]
 
 export const perfumeAddField = [

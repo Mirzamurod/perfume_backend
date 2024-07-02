@@ -47,7 +47,7 @@ const perfume = {
     await Perfume.findById(req.params.id)
       .then(response => {
         if (response) res.status(200).json({ data: response })
-        else res.status(400).json({ message: 'Perfume not found', success: false })
+        else res.status(400).json({ message: 'perfume_not_found', success: false })
       })
       .catch(error => res.status(400).json({ success: false, message: error.message }))
   }),
@@ -70,11 +70,11 @@ const perfume = {
         if (response)
           res
             .status(400)
-            .json({ success: false, messages: [{ msg: 'Perfume already exists', path: 'name' }] })
+            .json({ success: false, messages: [{ msg: 'perfume_already_exists', path: 'name' }] })
         else {
           await Perfume.create({ ...req.body, userId: req.user.id, slug: slug(req.body.name) })
             .then(response => {
-              if (response) res.status(201).json({ message: 'Perfume added', success: true })
+              if (response) res.status(201).json({ message: 'perfume_added', success: true })
             })
             .catch(error => res.status(400).json({ message: error.message, success: false }))
         }
@@ -95,16 +95,14 @@ const perfume = {
 
     await Perfume.findById(req.params.id)
       .then(async response => {
-        if (!response) res.status(400).json({ success: false, message: 'Perfume not found' })
+        if (!response) res.status(400).json({ success: false, message: 'perfume_not_found' })
         else {
           await Perfume.findByIdAndUpdate(
             req.params.id,
             { ...req.body, slug: slug(req.body.name) },
             { new: true }
           )
-            .then(() =>
-              res.status(200).json({ success: true, message: 'Perfume successfully updated' })
-            )
+            .then(() => res.status(200).json({ success: true, message: 'perfume_updated' }))
             .catch(error => res.status(400).json({ success: false, message: error.message }))
         }
       })
@@ -119,9 +117,8 @@ const perfume = {
   deletePerfume: expressAsyncHandler(async (req, res) => {
     await Perfume.findByIdAndDelete(req.params.id)
       .then(response => {
-        if (response)
-          res.status(200).json({ success: true, message: 'Perfume successfully deleted' })
-        else res.status(400).json({ success: false, message: 'Perfume not found' })
+        if (response) res.status(200).json({ success: true, message: 'perfume_deleted' })
+        else res.status(400).json({ success: false, message: 'perfume_not_found' })
       })
       .catch(error => res.status(400).json({ success: false, message: error.message }))
   }),

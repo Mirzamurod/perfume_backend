@@ -9,8 +9,8 @@ const protect = expressAsyncHandler(async (req, res, next) => {
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
       // Get token from header
-      token = req.headers.authorization.split(' ')[1]
-      // token = decode(req.headers.authorization.split(' ')[1])
+      // token = req.headers.authorization.split(' ')[1]
+      token = decode(req.headers.authorization.split(' ')[1])
 
       // Verify token
       const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
@@ -21,21 +21,21 @@ const protect = expressAsyncHandler(async (req, res, next) => {
       next()
     } catch (error) {
       // console.log(error)
-      res.status(401).json({ success: false, message: 'Not authorized' })
+      res.status(401).json({ success: false, message: 'not_authorized' })
     }
   }
 
-  if (!token) res.status(401).json({ success: false, message: 'Not authorized, no token' })
+  if (!token) res.status(401).json({ success: false, message: 'not_authorized_no_token' })
 })
 
 const admin = (req, res, next) => {
   if (req.user && req.user.role === 'admin') next()
-  else res.status(401).json({ success: false, message: 'Not authorized as an admin' })
+  else res.status(401).json({ success: false, message: 'not_authorized_as_an_admin' })
 }
 
 const client = (req, res, next) => {
   if (req.user && req.user.role === 'client') next()
-  else res.status(401).json({ success: false, message: 'Not authorized as an client' })
+  else res.status(401).json({ success: false, message: 'not_authorized_as_a_client' })
 }
 
 export { protect, admin, client }

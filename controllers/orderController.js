@@ -97,7 +97,7 @@ const order = {
     ])
       .then(response => {
         if (response[0]) res.status(200).json({ data: response[0] })
-        else res.status(400).json({ message: 'Order not found', success: false })
+        else res.status(400).json({ message: 'order_not_found', success: false })
       })
       .catch(error => res.status(400).json({ success: false, message: error.message }))
   }),
@@ -114,12 +114,12 @@ const order = {
     }
 
     if (!req.body.perfume.length)
-      res.status(400).json({ success: false, message: 'Must have at least 1 perfume' })
+      res.status(400).json({ success: false, message: 'must_have_perfume' })
     else {
       await Order.create({ ...req.body, userId: req.user.id })
         .then(response => {
-          if (response) res.status(201).json({ success: true, message: 'Order successfully added' })
-          else res.status(400).json({ success: false, message: 'Order data is invalid' })
+          if (response) res.status(201).json({ success: true, message: 'order_added' })
+          else res.status(400).json({ success: false, message: 'order_data_invalid' })
         })
         .catch(error => res.status(400).json({ success: false, message: error.message }))
     }
@@ -138,15 +138,13 @@ const order = {
 
     await Order.findById(req.params.id)
       .then(async response => {
-        if (!response) res.status(400).json({ success: false, message: 'Order not found' })
+        if (!response) res.status(400).json({ success: false, message: 'order_not_found' })
         else {
           if (!req.body.perfume.length)
-            res.status(400).json({ success: false, message: 'Must have at least 1 perfume' })
+            res.status(400).json({ success: false, message: 'must_have_perfume' })
           else
             await Order.findByIdAndUpdate(req.params.id, { ...req.body }, { new: true })
-              .then(() =>
-                res.status(200).json({ success: true, message: 'Order successfully updated' })
-              )
+              .then(() => res.status(200).json({ success: true, message: 'order_updated' }))
               .catch(error => res.status(400).json({ success: false, message: error.message }))
         }
       })
@@ -161,8 +159,8 @@ const order = {
   deleteOrder: expressAsyncHandler(async (req, res) => {
     await Order.findByIdAndDelete(req.params.id)
       .then(response => {
-        if (response) res.status(200).json({ success: true, message: 'Order successfully deleted' })
-        else res.status(400).json({ success: false, message: 'Order not found' })
+        if (response) res.status(200).json({ success: true, message: 'order_deleted' })
+        else res.status(400).json({ success: false, message: 'order_not_found' })
       })
       .catch(error => res.status(400).json({ success: false, message: error.message }))
   }),
