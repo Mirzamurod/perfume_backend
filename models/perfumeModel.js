@@ -6,7 +6,12 @@ const perfumeSchema = mongoose.Schema(
     name: { type: String, required: true, trim: true },
     color: { type: String, required: true, trim: true },
     smell: { type: String, required: true, trim: true },
-    season: { type: String, required: true, trim: true },
+    season: {
+      type: String,
+      required: true,
+      trim: true,
+      enum: ['winter' , 'spring' , 'summer' , 'autumn'],
+    },
     gender: { type: String, required: true, enum: ['boy', 'girl'] },
     persistence_of_the_smell: { type: Number, required: true, default: 1, trim: true },
     purchase_price: { type: Number, required: true },
