@@ -12,7 +12,8 @@ const perfume = {
    * @access  Private
    */
   getPerfumes: expressAsyncHandler(async (req, res) => {
-    const { limit, page, sortName, sortValue, search, searchName } = req.query
+    const { limit = 20, page = 0, sortName, sortValue, search, searchName } = req.query
+
     if (+limit && +page) {
       const perfumes = await Perfume.find({
         userId: req.user.id,
@@ -26,7 +27,7 @@ const perfume = {
 
       const pageLists = Math.ceil((await Perfume.find({ userId: req.user.id })).length / limit)
 
-      res.status(200).json({ data: perfumes, pageLists, page, count: perfumes.length })
+      res.status(200).json({ data: perfumes, pageLists: pageLists || 1, page, count: perfumes.length })
     } else {
       const perfumes = await Perfume.find({
         userId: req.user.id,

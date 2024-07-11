@@ -13,7 +13,7 @@ const user = {
    * @access  Private
    */
   getUsers: expressAsyncHandler(async (req, res) => {
-    const { limit, page, sortName, sortValue } = req.query
+    const { limit = 20, page = 0, sortName, sortValue } = req.query
     if (+limit && +page) {
       const users = await User.find({}, { password: 0 })
         .sort(sortValue ? { [sortName]: sortValue } : sortName)
@@ -22,7 +22,7 @@ const user = {
 
       const pageLists = Math.ceil((await User.find({}, { password: 0 })).length / limit)
 
-      res.status(200).json({ data: users, pageLists, page })
+      res.status(200).json({ data: users, pageLists: pageLists || 1, page })
     } else {
       const users = await User.find({}, { password: 0 }).sort(
         sortValue ? { [sortName]: sortValue } : sortName

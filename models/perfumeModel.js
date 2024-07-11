@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 
 const perfumeSchema = mongoose.Schema(
   {
-    type: { type: String, required: true, enum: ['atir', 'mushkambar'] },
+    type: { type: String, required: true, enum: ['perfume', 'muskambar'] },
     name: { type: String, required: true, trim: true },
     color: { type: String, required: true, trim: true },
     smell: { type: String, required: true, trim: true },

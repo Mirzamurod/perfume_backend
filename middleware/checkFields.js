@@ -100,7 +100,7 @@ export const perfumeAddField = [
 export const orderAddField = [
   check('name').trim().notEmpty().withMessage('name_required'),
   check('phone').trim().notEmpty().withMessage('phone_required'),
-  check('perfume.*.qty')
+  check('perfumes.*.qty')
     .trim()
     .notEmpty()
     .withMessage('qty_required')

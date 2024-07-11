@@ -10,9 +10,9 @@ const order = {
    * @access  Private
    */
   getOrders: expressAsyncHandler(async (req, res) => {
-    const { limit, page, sortName, sortValue, search, searchName } = req.query
+    const { limit = 20, page = 0, sortName, sortValue, search, searchName } = req.query
 
-    const pageLists = Math.ceil((await Order.find({ userId: req.user.id })).length / (limit ?? 20))
+    const pageLists = Math.ceil((await Order.find({ userId: req.user.id })).length / limit)
 
     await Order.aggregate([
       {
@@ -47,12 +47,12 @@ const order = {
           perfumes: { $push: { perfume: '$perfumes.perfume', qty: '$perfumes.qty' } },
         },
       },
-      { $limit: limit ?? 20 },
-      { $skip: (limit ?? 20) * (page ?? 0) },
+      { $limit: +limit },
+      { $skip: +limit * +page },
       { $sort: { [sortName]: sortValue ?? 1 } },
     ])
       .then(response =>
-        res.status(200).json({ data: response, pageLists, page: page ?? 0, count: response.length })
+        res.status(200).json({ data: response, pageLists: pageLists || 1, page, count: response.length })
       )
       .catch(error => res.status(400).json({ success: false, message: error.message }))
   }),
