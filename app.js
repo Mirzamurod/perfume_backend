@@ -4,7 +4,7 @@ import colors from 'colors'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import connectDB from './config/db.js'
-import { orderRoutes, perfumeRoutes, userRoutes } from './routes/index.js'
+import { orderRoutes, productRoutes, userRoutes } from './routes/index.js'
 
 const app = express()
 dotenv.config()
@@ -18,7 +18,7 @@ app.use(cookieParser())
 app.get('/', (req, res) => res.send('Hello World'))
 
 app.use('/api/users', userRoutes)
-app.use('/api/perfume', perfumeRoutes)
+app.use('/api/product', productRoutes)
 app.use('/api/order', orderRoutes)
 app.use('/*', (req, res) =>
   res

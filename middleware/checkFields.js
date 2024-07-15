@@ -1,4 +1,4 @@
-import { body, check } from 'express-validator'
+import { check } from 'express-validator'
 
 const pwdRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])/
 
@@ -76,25 +76,13 @@ export const userUpdateField = [
     .withMessage('maximum_16_letters'),
 ]
 
-export const perfumeAddField = [
+export const productAddField = [
   check('type').notEmpty().withMessage('type_required'),
   check('name').notEmpty().withMessage('name_required'),
   check('color').notEmpty().withMessage('color_required'),
   check('smell').notEmpty().withMessage('smell_required'),
   check('season').notEmpty().withMessage('season_required'),
   check('gender').notEmpty().withMessage('gender_required'),
-  check('purchase_price')
-    .notEmpty()
-    .withMessage('purchase_price_required')
-    .bail()
-    .isNumeric()
-    .withMessage('must_be_number'),
-  check('sale_price')
-    .notEmpty()
-    .withMessage('sale_price_required')
-    .bail()
-    .isNumeric()
-    .withMessage('must_be_number'),
 ]
 
 export const orderAddField = [
