@@ -97,3 +97,28 @@ export const orderAddField = [
     .withMessage('qty_must_be_number'),
   check('perfume.*.id').trim().notEmpty().withMessage('not_empty'),
 ]
+
+export const purchasedProductAddField = [
+  check('product_id').trim().notEmpty().withMessage('product_required'),
+  check('count')
+    .trim()
+    .notEmpty()
+    .withMessage('count_required')
+    .bail()
+    .isNumeric()
+    .withMessage('count_must_number'),
+  check('purchased_price')
+    .trim()
+    .notEmpty()
+    .withMessage('purchased_price_required')
+    .bail()
+    .isNumeric()
+    .withMessage('purchased_price_must_number'),
+  check('sale_price')
+    .trim()
+    .notEmpty()
+    .withMessage('sale_price_required')
+    .bail()
+    .isNumeric()
+    .withMessage('sale_price_must_number'),
+]

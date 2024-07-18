@@ -68,21 +68,21 @@ const product = {
 
     const { name } = req.body
 
-    // await Product.findOne({ name, userId: req.user.id })
-    //   .then(async response => {
-    //     if (response)
-    //       res
-    //         .status(400)
-    //         .json({ success: false, messages: [{ msg: 'product_already_exists', path: 'name' }] })
-    //     else {
-    await Product.create({ ...req.body, userId: req.user.id, slug: slug(req.body.name) })
-      .then(response => {
-        if (response) res.status(201).json({ message: 'product_added', success: true })
+    await Product.findOne({ name, userId: req.user.id })
+      .then(async response => {
+        if (response)
+          res
+            .status(400)
+            .json({ success: false, messages: [{ msg: 'product_already_exists', path: 'name' }] })
+        else {
+          await Product.create({ ...req.body, userId: req.user.id, slug: slug(req.body.name) })
+            .then(response => {
+              if (response) res.status(201).json({ message: 'product_added', success: true })
+            })
+            .catch(error => res.status(400).json({ message: error.message, success: false }))
+        }
       })
       .catch(error => res.status(400).json({ message: error.message, success: false }))
-    // }
-    // })
-    // .catch(error => res.status(400).json({ message: error.message, success: false }))
   }),
 
   /**

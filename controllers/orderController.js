@@ -12,7 +12,43 @@ const order = {
   getOrders: expressAsyncHandler(async (req, res) => {
     const { limit = 20, page = 0, sortName, sortValue, search, searchName } = req.query
 
-    const pageLists = Math.ceil((await Order.find({ userId: req.user.id })).length / limit)
+    let pageLists = 1
+
+    await Order.aggregate([
+      {
+        $match: {
+          userId: req.user._id,
+          ...(searchName
+            ? { [searchName]: { $regex: search ?? '', $options: 'i' } }
+            : { name: { $regex: search ?? '', $options: 'i' } }),
+        },
+      },
+      {
+        $lookup: { from: 'users', localField: 'supplierId', foreignField: '_id', as: 'supplier' },
+      },
+      { $unwind: { path: '$supplier', preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: '$perfumes', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'perfumes',
+          localField: 'perfumes.id',
+          foreignField: '_id',
+          as: 'perfumes.perfume',
+        },
+      },
+      { $unwind: { path: '$perfumes.perfume', preserveNullAndEmptyArrays: true } },
+      {
+        $group: {
+          _id: '$_id',
+          phone: { $first: '$phone' },
+          name: { $first: '$name' },
+          location: { $first: '$location' },
+          supplier: { $first: '$supplier' },
+          perfumes: { $push: { perfume: '$perfumes.perfume', qty: '$perfumes.qty' } },
+        },
+      },
+      { $count: 'total' },
+    ]).then(response => (pageLists = response[0].total))
 
     await Order.aggregate([
       {
@@ -48,11 +84,16 @@ const order = {
         },
       },
       { $limit: +limit },
-      { $skip: +limit * +page },
+      { $skip: +limit * (+page - 1) },
       { $sort: { [sortName]: sortValue ?? 1 } },
     ])
       .then(response =>
-        res.status(200).json({ data: response, pageLists: pageLists || 1, page, count: response.length })
+        res.status(200).json({
+          page,
+          data: response,
+          count: response.length,
+          pageLists: Math.ceil(pageLists / limit),
+        })
       )
       .catch(error => res.status(400).json({ success: false, message: error.message }))
   }),
