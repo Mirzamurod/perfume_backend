@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 
 const userSchema = mongoose.Schema(
   {
+    name: { type: String, trim: true },
     phone: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     mode: { type: String, required: true, enum: ['dark', 'light'], default: 'dark' },

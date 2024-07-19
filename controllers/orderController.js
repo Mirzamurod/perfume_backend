@@ -10,7 +10,7 @@ const order = {
    * @access  Private
    */
   getOrders: expressAsyncHandler(async (req, res) => {
-    const { limit = 20, page = 0, sortName, sortValue, search, searchName } = req.query
+    const { limit = 20, page = 1, sortName, sortValue, search, searchName } = req.query
 
     let pageLists = 1
 
@@ -66,7 +66,7 @@ const order = {
       { $unwind: { path: '$perfumes', preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
-          from: 'perfumes',
+          from: 'products',
           localField: 'perfumes.id',
           foreignField: '_id',
           as: 'perfumes.perfume',
@@ -83,9 +83,9 @@ const order = {
           perfumes: { $push: { perfume: '$perfumes.perfume', qty: '$perfumes.qty' } },
         },
       },
-      { $limit: +limit },
-      { $skip: +limit * (+page - 1) },
       { $sort: { [sortName]: sortValue ?? 1 } },
+      limit ? { $limit: +limit } : {},
+      page ? { $skip: +limit * (+page - 1) } : {},
     ])
       .then(response =>
         res.status(200).json({
@@ -118,7 +118,7 @@ const order = {
       { $unwind: { path: '$perfumes', preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
-          from: 'perfumes',
+          from: 'products',
           localField: 'perfumes.id',
           foreignField: '_id',
           as: 'perfumes.perfume',
@@ -154,7 +154,7 @@ const order = {
       return res.status(400).json({ messages: errors.array(), success: false })
     }
 
-    if (!req.body.perfume.length)
+    if (!req.body.perfumes.length)
       res.status(400).json({ success: false, message: 'must_have_perfume' })
     else {
       await Order.create({ ...req.body, userId: req.user.id })
@@ -181,7 +181,7 @@ const order = {
       .then(async response => {
         if (!response) res.status(400).json({ success: false, message: 'order_not_found' })
         else {
-          if (!req.body.perfume.length)
+          if (!req.body.perfumes.length)
             res.status(400).json({ success: false, message: 'must_have_perfume' })
           else
             await Order.findByIdAndUpdate(req.params.id, { ...req.body }, { new: true })

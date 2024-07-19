@@ -7,20 +7,23 @@ const router = express.Router()
 
 // /api/users
 router
-  .route('/')
+  .route('/users')
   .get(protect, admin, user.getUsers)
   .post(userAddField, user.register)
   .put(protect, userUpdateField, user.update)
   .delete(protect, user.delete)
-router.get('/profile', protect, user.getUser)
-router.post('/login', userLoginField, user.login)
+router.get('/users/profile', protect, user.getUser)
+router.post('/users/login', userLoginField, user.login)
 router.post('/client', protect, admin, userAddField, user.addClientByAdmin)
 router
   .route('/client/:id')
   .get(protect, admin, user.getClientByAdmin)
   .put(protect, admin, userUpdateField, user.editClientByAdmin)
   .delete(protect, admin, user.deleteClientByAdmin)
-router.post('/supplier', protect, client, userAddField, user.addSupplierByClient)
+router
+  .route('/supplier')
+  .get(protect, client, user.getSuppliersByClient)
+  .post(protect, client, userAddField, user.addSupplierByClient)
 router
   .route('/supplier/:id')
   .get(protect, client, user.getSupplierByClient)

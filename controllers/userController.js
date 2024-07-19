@@ -288,6 +288,20 @@ const user = {
   }),
 
   /**
+   * @desc    Get Suppliers by Client
+   * @route   GET /api/users/supplier
+   * @access  Private
+   */
+  getSuppliersByClient: expressAsyncHandler(async (req, res) => {
+    await User.find({ userId: req.user.id }, { password: 0 })
+      .then(response => {
+        if (response) res.status(200).json({ data: response })
+        else res.status(400).json({ success: false, message: 'suppliers_not_found' })
+      })
+      .catch(error => res.status(400).json({ message: error.message, success: false }))
+  }),
+
+  /**
    * @desc    Get Supplier by Client
    * @route   GET /api/users/supplier/:id
    * @access  Private

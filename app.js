@@ -17,7 +17,7 @@ app.use(cookieParser())
 
 app.get('/', (req, res) => res.send('Hello World'))
 
-app.use('/api/users', userRoutes)
+app.use('/api', userRoutes)
 app.use('/api/product', productRoutes)
 app.use('/api/order', orderRoutes)
 app.use('/api/purchased-product', purchasedProductRoutes)

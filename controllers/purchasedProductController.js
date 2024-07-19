@@ -10,7 +10,7 @@ const purchasedProduct = {
    * @access  Private
    */
   getPurchasedProducts: expressAsyncHandler(async (req, res) => {
-    const { limit = 20, page = 0, sortName, sortValue, search, searchName } = req.query
+    const { limit = 20, page = 1, sortName, sortValue, search, searchName } = req.query
 
     let pageLists = 1
 
@@ -61,9 +61,9 @@ const purchasedProduct = {
             : { 'product.name': { $regex: search ?? '', $options: 'i' } }),
         },
       },
-      { $limit: +limit },
-      { $skip: +limit * (+page - 1) },
       { $sort: { [sortName]: sortValue ?? 1 } },
+      limit ? { $limit: +limit } : {},
+      page ? { $skip: +limit * (+page - 1) } : {},
     ])
       .then(response =>
         res.status(200).json({
@@ -82,7 +82,7 @@ const purchasedProduct = {
    * @access  Private
    */
   getPurchasedProductsGroup: expressAsyncHandler(async (req, res) => {
-    const { limit = 20, page = 0, sortName, sortValue, search, searchName } = req.query
+    const { limit = 20, page = 1, sortName, sortValue, search, searchName } = req.query
 
     let pageLists = 1
 
@@ -133,9 +133,9 @@ const purchasedProduct = {
             : { 'product.name': { $regex: search ?? '', $options: 'i' } }),
         },
       },
+      { $sort: { [sortName]: sortValue ?? 1, count: 1 } },
       { $limit: +limit },
       { $skip: +limit * (+page - 1) },
-      { $sort: { [sortName]: sortValue ?? 1, count: 1 } },
     ])
       .then(response =>
         res.status(200).json({
