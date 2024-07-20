@@ -171,7 +171,7 @@ const user = {
         else {
           const hashedPassword = await bcryptjs.hash(password, salt)
           const user = await User.create({
-            phone,
+            ...req.body,
             password: hashedPassword,
             userId: req.user.id,
             role: 'client',
@@ -208,28 +208,17 @@ const user = {
 
     await User.findOne({ _id: req.params.id, role: 'client' })
       .then(async response => {
-        if (req.body.currentPassword) {
-          bcryptjs
-            .compare(req.body.currentPassword, response.password)
-            .then(async checkPassword => {
-              if (checkPassword) {
-                const hashedPassword = await bcryptjs.hash(req.body.newPassword.toString(), salt)
-                await User.findByIdAndUpdate(
-                  response.id,
-                  { ...req.body, password: hashedPassword },
-                  { new: true }
-                )
-                  .then(() => res.status(200).json({ success: true, message: 'client_updated' }))
-                  .catch(errorUpdated =>
-                    res.status(400).json({ message: errorUpdated.message, success: false })
-                  )
-              } else
-                res.status(400).json({
-                  success: false,
-                  messages: [{ msg: 'current_password_wrong', path: 'currentPassword' }],
-                })
-            })
-            .catch(err => res.status(400).json({ success: false, message: err.message }))
+        if (req.body.password) {
+          const hashedPassword = await bcryptjs.hash(req.body.password, salt)
+          await User.findByIdAndUpdate(
+            response.id,
+            { ...req.body, password: hashedPassword },
+            { new: true }
+          )
+            .then(() => res.status(200).json({ success: true, message: 'client_updated' }))
+            .catch(errorUpdated =>
+              res.status(400).json({ message: errorUpdated.message, success: false })
+            )
         } else {
           await User.findByIdAndUpdate(response.id, req.body, { new: true })
           res.status(200).json({ success: true, message: 'client_updated' })
@@ -274,9 +263,9 @@ const user = {
         else {
           const hashedPassword = await bcryptjs.hash(password, salt)
           const user = await User.create({
-            phone,
+            ...req.body,
             password: hashedPassword,
-            // userId: req.user.id,
+            userId: req.user.id,
             role: 'supplier',
           })
 

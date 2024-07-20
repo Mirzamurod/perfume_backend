@@ -23,30 +23,30 @@ const order = {
             : { name: { $regex: search ?? '', $options: 'i' } }),
         },
       },
-      {
-        $lookup: { from: 'users', localField: 'supplierId', foreignField: '_id', as: 'supplier' },
-      },
-      { $unwind: { path: '$supplier', preserveNullAndEmptyArrays: true } },
-      { $unwind: { path: '$perfumes', preserveNullAndEmptyArrays: true } },
-      {
-        $lookup: {
-          from: 'perfumes',
-          localField: 'perfumes.id',
-          foreignField: '_id',
-          as: 'perfumes.perfume',
-        },
-      },
-      { $unwind: { path: '$perfumes.perfume', preserveNullAndEmptyArrays: true } },
-      {
-        $group: {
-          _id: '$_id',
-          phone: { $first: '$phone' },
-          name: { $first: '$name' },
-          location: { $first: '$location' },
-          supplier: { $first: '$supplier' },
-          perfumes: { $push: { perfume: '$perfumes.perfume', qty: '$perfumes.qty' } },
-        },
-      },
+      // {
+      //   $lookup: { from: 'users', localField: 'supplierId', foreignField: '_id', as: 'supplier' },
+      // },
+      // { $unwind: { path: '$supplier', preserveNullAndEmptyArrays: true } },
+      // { $unwind: { path: '$perfumes', preserveNullAndEmptyArrays: true } },
+      // {
+      //   $lookup: {
+      //     from: 'perfumes',
+      //     localField: 'perfumes.id',
+      //     foreignField: '_id',
+      //     as: 'perfumes.perfume',
+      //   },
+      // },
+      // { $unwind: { path: '$perfumes.perfume', preserveNullAndEmptyArrays: true } },
+      // {
+      //   $group: {
+      //     _id: '$_id',
+      //     phone: { $first: '$phone' },
+      //     name: { $first: '$name' },
+      //     location: { $first: '$location' },
+      //     supplier: { $first: '$supplier' },
+      //     perfumes: { $push: { perfume: '$perfumes.perfume', qty: '$perfumes.qty' } },
+      //   },
+      // },
       { $count: 'total' },
     ]).then(response => (pageLists = response[0].total))
 
@@ -80,6 +80,7 @@ const order = {
           name: { $first: '$name' },
           location: { $first: '$location' },
           supplier: { $first: '$supplier' },
+          delivery_date: { $first: '$delivery_date' },
           perfumes: { $push: { perfume: '$perfumes.perfume', qty: '$perfumes.qty' } },
         },
       },
@@ -107,12 +108,7 @@ const order = {
     await Order.aggregate([
       { $match: { _id: new Types.ObjectId(req.params.id) } },
       {
-        $lookup: {
-          from: 'suppliers',
-          localField: 'supplierId',
-          foreignField: '_id',
-          as: 'supplier',
-        },
+        $lookup: { from: 'users', localField: 'supplierId', foreignField: '_id', as: 'supplier' },
       },
       { $unwind: { path: '$supplier', preserveNullAndEmptyArrays: true } },
       { $unwind: { path: '$perfumes', preserveNullAndEmptyArrays: true } },
@@ -132,6 +128,7 @@ const order = {
           name: { $first: '$name' },
           location: { $first: '$location' },
           supplier: { $first: '$supplier' },
+          delivery_date: { $first: '$delivery_date' },
           perfumes: { $push: { perfume: '$perfumes.perfume', qty: '$perfumes.qty' } },
         },
       },

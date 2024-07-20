@@ -4,7 +4,8 @@ const orderSchema = mongoose.Schema(
   {
     phone: { type: String, required: true, trim: true },
     name: { type: String, required: true, trim: true },
-    location: { type: String, required: false, trim: true },
+    location: { type: [Number], required: false, trim: true },
+    delivery_date: { type: Date, required: false, trim: true },
     perfumes: [
       {
         id: {
