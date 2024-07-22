@@ -88,6 +88,7 @@ export const productAddField = [
 export const orderAddField = [
   check('name').trim().notEmpty().withMessage('name_required'),
   check('phone').trim().notEmpty().withMessage('phone_required'),
+  check('payment_method').trim().notEmpty().withMessage('payment_method_required'),
   check('perfumes.*.qty')
     .trim()
     .notEmpty()

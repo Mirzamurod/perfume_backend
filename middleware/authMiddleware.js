@@ -38,4 +38,11 @@ const client = (req, res, next) => {
   else res.status(401).json({ success: false, message: 'not_authorized_as_a_client' })
 }
 
-export { protect, admin, client }
+const permission = roles => {
+  return (req, res, next) => {
+    if (req.user && roles.includes(req.user.role)) next()
+    else res.status(401).json({ success: false, message: 'not_authorized_as_a_client_or_supplier' })
+  }
+}
+
+export { protect, admin, client, permission }

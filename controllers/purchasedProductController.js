@@ -37,7 +37,10 @@ const purchasedProduct = {
         },
       },
       { $count: 'total' },
-    ]).then(response => (pageLists = response[0].total))
+    ]).then(response => {
+      if (response.length) pageLists = response[0].total
+      else pageLists = 1
+    })
 
     await PurchasedProduct.aggregate([
       { $match: { userId: req.user._id } },

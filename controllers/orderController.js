@@ -10,7 +10,7 @@ const order = {
    * @access  Private
    */
   getOrders: expressAsyncHandler(async (req, res) => {
-    const { limit = 20, page = 1, sortName, sortValue, search, searchName } = req.query
+    const { limit = 20, page = 1, sortName, sortValue, search, searchName, status } = req.query
 
     let pageLists = 1
 
@@ -18,6 +18,7 @@ const order = {
       {
         $match: {
           userId: req.user._id,
+          status,
           ...(searchName
             ? { [searchName]: { $regex: search ?? '', $options: 'i' } }
             : { name: { $regex: search ?? '', $options: 'i' } }),
@@ -48,12 +49,16 @@ const order = {
       //   },
       // },
       { $count: 'total' },
-    ]).then(response => (pageLists = response[0].total))
+    ]).then(response => {
+      if (response.length) pageLists = response[0].total
+      else pageLists = 1
+    })
 
     await Order.aggregate([
       {
         $match: {
           userId: req.user._id,
+          status,
           ...(searchName
             ? { [searchName]: { $regex: search ?? '', $options: 'i' } }
             : { name: { $regex: search ?? '', $options: 'i' } }),
@@ -80,7 +85,9 @@ const order = {
           name: { $first: '$name' },
           location: { $first: '$location' },
           supplier: { $first: '$supplier' },
+          payment_method: { $first: '$payment_method' },
           delivery_date: { $first: '$delivery_date' },
+          status: { $first: '$status' },
           perfumes: { $push: { perfume: '$perfumes.perfume', qty: '$perfumes.qty' } },
         },
       },
@@ -165,7 +172,7 @@ const order = {
 
   /**
    * @desc    Edit Order
-   * @route   PUT /api/order/:id
+   * @route   PATCH /api/order/:id
    * @access  Private
    */
   editOrder: expressAsyncHandler(async (req, res) => {
@@ -178,12 +185,12 @@ const order = {
       .then(async response => {
         if (!response) res.status(400).json({ success: false, message: 'order_not_found' })
         else {
-          if (!req.body.perfumes.length)
-            res.status(400).json({ success: false, message: 'must_have_perfume' })
-          else
-            await Order.findByIdAndUpdate(req.params.id, { ...req.body }, { new: true })
-              .then(() => res.status(200).json({ success: true, message: 'order_updated' }))
-              .catch(error => res.status(400).json({ success: false, message: error.message }))
+          // if (!req.body.perfumes.length)
+          //   res.status(400).json({ success: false, message: 'must_have_perfume' })
+          // else
+          await Order.findByIdAndUpdate(req.params.id, { ...req.body }, { new: true })
+            .then(() => res.status(200).json({ success: true, message: 'order_updated' }))
+            .catch(error => res.status(400).json({ success: false, message: error.message }))
         }
       })
       .catch(error => res.status(400).json({ message: error.message, success: false }))
