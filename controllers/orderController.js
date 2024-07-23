@@ -57,7 +57,7 @@ const order = {
     await Order.aggregate([
       {
         $match: {
-          userId: req.user._id,
+          [req.user.role === 'client' ? 'userId' : 'supplierId']: req.user._id,
           status,
           ...(searchName
             ? { [searchName]: { $regex: search ?? '', $options: 'i' } }
