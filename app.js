@@ -4,7 +4,13 @@ import colors from 'colors'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import connectDB from './config/db.js'
-import { orderRoutes, productRoutes, purchasedProductRoutes, userRoutes } from './routes/index.js'
+import {
+  orderRoutes,
+  productGroupRoutes,
+  productRoutes,
+  purchasedProductRoutes,
+  userRoutes,
+} from './routes/index.js'
 
 const app = express()
 dotenv.config()
@@ -21,6 +27,7 @@ app.use('/api', userRoutes)
 app.use('/api/product', productRoutes)
 app.use('/api/order', orderRoutes)
 app.use('/api/purchased-product', purchasedProductRoutes)
+app.use('/api/product-group', productGroupRoutes)
 app.use('/*', (req, res) =>
   res.status(404).json({
     message: `${req.protocol + '://' + req.get('host') + req.originalUrl} url not found`,

@@ -1,5 +1,6 @@
 import expressAsyncHandler from 'express-async-handler'
 import PurchasedProduct from '../models/purchasedProductModel.js'
+import ProductGroup from '../models/productGroupModel.js'
 import { validationResult } from 'express-validator'
 import { Types } from 'mongoose'
 
@@ -112,7 +113,10 @@ const purchasedProduct = {
         },
       },
       { $count: 'total' },
-    ]).then(response => (pageLists = response[0].total))
+    ]).then(response => {
+      if (response.length) pageLists = response[0].total
+      else pageLists = 1
+    })
 
     await PurchasedProduct.aggregate([
       { $match: { userId: req.user._id } },
@@ -190,6 +194,17 @@ const purchasedProduct = {
     if (!errors.isEmpty()) {
       return res.status(400).json({ messages: errors.array(), success: false })
     }
+
+    await ProductGroup.findOne({ product_id: req.body.product_id })
+      .then(async response => {
+        if (response)
+          await ProductGroup.findByIdAndUpdate(response._id, {
+            count: +response.count + +req.body.count,
+            sale_price: req.body.sale_price,
+          })
+        else ProductGroup.create({ ...req.body, userId: req.user.id })
+      })
+      .catch(error => res.status(400).json({ message: error.message, success: false }))
 
     await PurchasedProduct.create({ ...req.body, userId: req.user.id })
       .then(response => {

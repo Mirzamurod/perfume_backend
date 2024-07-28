@@ -19,7 +19,7 @@ const orderSchema = mongoose.Schema(
         id: {
           type: mongoose.Schema.Types.ObjectId,
           required: true,
-          ref: 'perfumes',
+          ref: 'products',
         },
         qty: { type: Number, required: true, default: 1 },
       },

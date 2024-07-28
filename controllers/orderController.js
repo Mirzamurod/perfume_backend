@@ -1,5 +1,6 @@
 import expressAsyncHandler from 'express-async-handler'
 import Order from './../models/orderModel.js'
+import ProductGroup from '../models/productGroupModel.js'
 import { validationResult } from 'express-validator'
 import { Types } from 'mongoose'
 
@@ -158,9 +159,22 @@ const order = {
       return res.status(400).json({ messages: errors.array(), success: false })
     }
 
-    if (!req.body.perfumes.length)
+    if (!req.body?.perfumes?.length)
       res.status(400).json({ success: false, message: 'must_have_perfume' })
     else {
+      const bulkOperations = req.body?.perfumes?.map(product => {
+        return {
+          updateOne: {
+            filter: { product_id: product.id },
+            update: { $inc: { count: -product.qty } },
+          },
+        }
+      })
+
+      await ProductGroup.bulkWrite(bulkOperations).catch(error =>
+        res.status(400).json({ success: false, message: error.message })
+      )
+
       await Order.create({ ...req.body, userId: req.user.id })
         .then(response => {
           if (response) res.status(201).json({ success: true, message: 'order_added' })
@@ -185,12 +199,24 @@ const order = {
       .then(async response => {
         if (!response) res.status(400).json({ success: false, message: 'order_not_found' })
         else {
-          // if (!req.body.perfumes.length)
-          //   res.status(400).json({ success: false, message: 'must_have_perfume' })
-          // else
-          await Order.findByIdAndUpdate(req.params.id, { ...req.body }, { new: true })
-            .then(() => res.status(200).json({ success: true, message: 'order_updated' }))
-            .catch(error => res.status(400).json({ success: false, message: error.message }))
+          if (req.body?.perfumes?.length) {
+            const bulkOperations = req.body?.perfumes?.map(product => {
+              return {
+                updateOne: {
+                  filter: { product_id: product.id },
+                  update: { $inc: { count: -product.qty } },
+                },
+              }
+            })
+
+            await ProductGroup.bulkWrite(bulkOperations)
+              .then(async () => {
+                await Order.findByIdAndUpdate(req.params.id, { ...req.body }, { new: true })
+                  .then(() => res.status(200).json({ success: true, message: 'order_updated' }))
+                  .catch(error => res.status(400).json({ success: false, message: error.message }))
+              })
+              .catch(error => res.status(400).json({ success: false, message: error.message }))
+          }
         }
       })
       .catch(error => res.status(400).json({ message: error.message, success: false }))
