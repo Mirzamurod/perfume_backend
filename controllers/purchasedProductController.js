@@ -81,81 +81,6 @@ const purchasedProduct = {
   }),
 
   /**
-   * @desc    Get Purchased Product Group
-   * @route   GET /api/purchased-product/group
-   * @access  Private
-   */
-  getPurchasedProductsGroup: expressAsyncHandler(async (req, res) => {
-    const { limit = 20, page = 1, sortName, sortValue, search, searchName } = req.query
-
-    let pageLists = 1
-
-    await PurchasedProduct.aggregate([
-      { $match: { userId: req.user._id } },
-      {
-        $lookup: { from: 'products', localField: 'product_id', foreignField: '_id', as: 'product' },
-      },
-      { $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
-      {
-        $group: {
-          _id: '$_id',
-          count: { $first: '$count' },
-          purchased_price: { $first: '$purchased_price' },
-          sale_price: { $first: '$sale_price' },
-          product: { $first: '$product' },
-        },
-      },
-      {
-        $match: {
-          ...(searchName
-            ? { [`product.${searchName}`]: { $regex: search ?? '', $options: 'i' } }
-            : { 'product.name': { $regex: search ?? '', $options: 'i' } }),
-        },
-      },
-      { $count: 'total' },
-    ]).then(response => {
-      if (response.length) pageLists = response[0].total
-      else pageLists = 1
-    })
-
-    await PurchasedProduct.aggregate([
-      { $match: { userId: req.user._id } },
-      {
-        $lookup: { from: 'products', localField: 'product_id', foreignField: '_id', as: 'product' },
-      },
-      { $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
-      {
-        $group: {
-          _id: '$product_id',
-          count: { $sum: '$count' },
-          purchased_price: { $last: '$purchased_price' },
-          sale_price: { $last: '$sale_price' },
-          product: { $first: '$product' },
-        },
-      },
-      {
-        $match: {
-          ...(searchName
-            ? { [`product.${searchName}`]: { $regex: search ?? '', $options: 'i' } }
-            : { 'product.name': { $regex: search ?? '', $options: 'i' } }),
-        },
-      },
-      { $sort: { [sortName]: sortValue ?? 1, count: 1 } },
-      { $limit: +limit },
-      { $skip: +limit * (+page - 1) },
-    ])
-      .then(response =>
-        res.status(200).json({
-          page,
-          data: response,
-          count: response.length,
-          pageLists: Math.ceil(pageLists / limit),
-        })
-      )
-      .catch(error => res.status(400).json({ success: false, message: error.message }))
-  }),
-
-  /**
    * @desc    Get Purchased Product
    * @route   GET /api/purchased-product/:id
    * @access  Private
@@ -229,6 +154,19 @@ const purchasedProduct = {
         if (!response)
           res.status(400).json({ success: false, message: 'purchased_product_not_found' })
         else {
+          await ProductGroup.findOne({ product_id: response.product_id })
+            .then(async group => {
+              await ProductGroup.updateOne(
+                { product_id: response.product_id },
+                {
+                  sale_price: req.body.sale_price,
+                  count: +group.count - (+response.count - +req.body.count),
+                }
+                // { new: true }
+              ).catch(error => res.status(400).json({ success: false, message: error.message }))
+            })
+            .catch(error => res.status(400).json({ success: false, message: error.message }))
+
           await PurchasedProduct.findByIdAndUpdate(req.params.id, { ...req.body }, { new: true })
             .then(() =>
               res.status(200).json({ success: true, message: 'purchased_product_updated' })
@@ -246,7 +184,11 @@ const purchasedProduct = {
    */
   deletePurchasedProduct: expressAsyncHandler(async (req, res) => {
     await PurchasedProduct.findByIdAndDelete(req.params.id)
-      .then(response => {
+      .then(async response => {
+        await ProductGroup.updateOne(
+          { product_id: response.product_id },
+          { $inc: { count: -response.count } }
+        )
         if (response) res.status(200).json({ success: true, message: 'purchased_product_deleted' })
         else res.status(400).json({ success: false, message: 'purchased_product_not_found' })
       })

@@ -10,7 +10,6 @@ router
   .route('/')
   .get(protect, client, purchasedProduct.getPurchasedProducts)
   .post(protect, client, purchasedProductAddField, purchasedProduct.addPurchasedProduct)
-router.get('/group', protect, client, purchasedProduct.getPurchasedProductsGroup)
 router
   .route('/:id')
   .get(protect, client, purchasedProduct.getPurchasedProduct)

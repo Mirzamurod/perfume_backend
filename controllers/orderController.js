@@ -153,6 +153,7 @@ const order = {
    * @route   POST /api/order
    * @access  Private
    */
+  // product_count_incorrect
   addOrder: expressAsyncHandler(async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
@@ -190,32 +191,74 @@ const order = {
    * @access  Private
    */
   editOrder: expressAsyncHandler(async (req, res) => {
-    const errors = validationResult(req)
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ messages: errors.array(), success: false })
-    }
+    const changeOrder = async () =>
+      await Order.findByIdAndUpdate(req.params.id, { ...req.body }, { new: true })
+        .then(() => res.status(200).json({ success: true, message: 'order_updated' }))
+        .catch(error => res.status(400).json({ success: false, message: error.message }))
 
     await Order.findById(req.params.id)
       .then(async response => {
         if (!response) res.status(400).json({ success: false, message: 'order_not_found' })
         else {
           if (req.body?.perfumes?.length) {
-            const bulkOperations = req.body?.perfumes?.map(product => {
+            const mergedItems1 = Object.values(
+              response.perfumes.reduce((acc, { qty, id }) => {
+                acc[id] = acc[id] || { qty: 0, id }
+                acc[id].qty += qty
+                return acc
+              }, {})
+            )
+
+            const mergedItems2 = Object.values(
+              req.body.perfumes.reduce((acc, { qty, id }) => {
+                acc[id] = acc[id] || { qty: 0, id }
+                acc[id].qty += qty
+                return acc
+              }, {})
+            )
+
+            let deletedItems = mergedItems1
+              .filter(
+                item1 => !mergedItems2.some(item2 => item2.id.toString() === item1.id.toString())
+              )
+              .map(product => {
+                return {
+                  updateOne: {
+                    filter: { product_id: product.id },
+                    update: { $inc: { count: product.qty } },
+                  },
+                }
+              })
+
+            const bulkOperations = mergedItems2?.map(item2 => {
+              const item1 = mergedItems1.find(item1 => item1.id.toString() === item2.id.toString())
+              const count = +item2.qty - (+item1?.qty || 0)
               return {
                 updateOne: {
-                  filter: { product_id: product.id },
-                  update: { $inc: { count: -product.qty } },
+                  filter: { product_id: item2.id },
+                  update: { $inc: { count: -count } },
                 },
               }
             })
 
-            await ProductGroup.bulkWrite(bulkOperations)
-              .then(async () => {
-                await Order.findByIdAndUpdate(req.params.id, { ...req.body }, { new: true })
-                  .then(() => res.status(200).json({ success: true, message: 'order_updated' }))
-                  .catch(error => res.status(400).json({ success: false, message: error.message }))
-              })
+            await ProductGroup.bulkWrite([...bulkOperations, ...deletedItems])
+              .then(async () => changeOrder())
               .catch(error => res.status(400).json({ success: false, message: error.message }))
+          } else {
+            if (req.body.status === 'cancelled') {
+              const bulkOperations = response.perfumes.map(item => {
+                return {
+                  updateOne: {
+                    filter: { product_id: item.id },
+                    update: { $inc: { count: item.qty } },
+                  },
+                }
+              })
+
+              await ProductGroup.bulkWrite(bulkOperations)
+                .then(async () => changeOrder())
+                .catch(error => res.status(400).json({ success: false, message: error.message }))
+            } else changeOrder()
           }
         }
       })
@@ -229,7 +272,17 @@ const order = {
    */
   deleteOrder: expressAsyncHandler(async (req, res) => {
     await Order.findByIdAndDelete(req.params.id)
-      .then(response => {
+      .then(async response => {
+        const bulkOperations = response.perfumes.map(item => {
+          return {
+            updateOne: {
+              filter: { product_id: item.id },
+              update: { $inc: { count: item.qty } },
+            },
+          }
+        })
+
+        await ProductGroup.bulkWrite(bulkOperations)
         if (response) res.status(200).json({ success: true, message: 'order_deleted' })
         else res.status(400).json({ success: false, message: 'order_not_found' })
       })
