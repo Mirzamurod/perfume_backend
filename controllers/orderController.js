@@ -245,7 +245,20 @@ const order = {
               .then(async () => changeOrder())
               .catch(error => res.status(400).json({ success: false, message: error.message }))
           } else {
-            if (req.body.status === 'cancelled') {
+            if (response.status === 'cancelled') {
+              const bulkOperations = response.perfumes.map(item => {
+                return {
+                  updateOne: {
+                    filter: { product_id: item.id },
+                    update: { $inc: { count: -item.qty } },
+                  },
+                }
+              })
+
+              await ProductGroup.bulkWrite(bulkOperations)
+                .then(async () => changeOrder())
+                .catch(error => res.status(400).json({ success: false, message: error.message }))
+            } else if (req.body.status === 'cancelled') {
               const bulkOperations = response.perfumes.map(item => {
                 return {
                   updateOne: {

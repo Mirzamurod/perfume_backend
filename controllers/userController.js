@@ -282,7 +282,70 @@ const user = {
    * @access  Private
    */
   getSuppliersByClient: expressAsyncHandler(async (req, res) => {
-    await User.find({ userId: req.user.id }, { password: 0 })
+    const { limit = 20, page = 1, sortName, sortValue, search, searchName } = req.query
+
+    let pageLists = 1
+
+    await User.find({ userId: req.user.id }, { password: 0 }).then(response => {
+      if (response.length) pageLists = response[0].total
+      else pageLists = 1
+    })
+
+    await User.aggregate([
+      {
+        $match: {
+          userId: req.user._id,
+          ...(searchName
+            ? { [searchName]: { $regex: search ?? '', $options: 'i' } }
+            : { name: { $regex: search ?? '', $options: 'i' } }),
+        },
+      },
+      {
+        $lookup: {
+          from: 'orders',
+          let: { supplierId: '$_id' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$supplierId', '$$supplierId'] } } },
+            {
+              $facet: {
+                totalOrders: [{ $count: 'total' }],
+                finishedOrders: [{ $match: { status: 'sold' } }, { $count: 'total' }],
+              },
+            },
+            {
+              $project: {
+                totalOrders: { $arrayElemAt: ['$totalOrders.total', 0] },
+                finishedOrders: { $arrayElemAt: ['$finishedOrders.total', 0] },
+              },
+            },
+          ],
+          as: 'orderData',
+        },
+      },
+      {
+        $addFields: {
+          orders: { $ifNull: [{ $arrayElemAt: ['$orderData.totalOrders', 0] }, 0] },
+          finished_orders: { $ifNull: [{ $arrayElemAt: ['$orderData.finishedOrders', 0] }, 0] },
+        },
+      },
+      {
+        $project: {
+          block: 1,
+          createdAt: 1,
+          mode: 1,
+          name: 1,
+          phone: 1,
+          role: 1,
+          updatedAt: 1,
+          userId: 1,
+          orders: 1,
+          finished_orders: 1,
+        },
+      },
+      { $sort: { [sortName]: sortValue ?? 1 } },
+      limit ? { $limit: +limit } : {},
+      page ? { $skip: +limit * (+page - 1) } : {},
+    ])
       .then(response => {
         if (response) res.status(200).json({ data: response })
         else res.status(400).json({ success: false, message: 'suppliers_not_found' })
