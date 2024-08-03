@@ -30,18 +30,18 @@ const protect = expressAsyncHandler(async (req, res, next) => {
 
 const admin = (req, res, next) => {
   if (req.user && req.user.role === 'admin') next()
-  else res.status(401).json({ success: false, message: 'not_authorized_as_an_admin' })
+  else res.status(403).json({ success: false, message: 'not_authorized_as_an_admin' })
 }
 
 const client = (req, res, next) => {
   if (req.user && req.user.role === 'client') next()
-  else res.status(401).json({ success: false, message: 'not_authorized_as_a_client' })
+  else res.status(403).json({ success: false, message: 'not_authorized_as_a_client' })
 }
 
 const permission = roles => {
   return (req, res, next) => {
     if (req.user && roles.includes(req.user.role)) next()
-    else res.status(401).json({ success: false, message: 'not_authorized_as_a_client_or_supplier' })
+    else res.status(403).json({ success: false, message: 'not_authorized_as_a_client_or_supplier' })
   }
 }
 

@@ -13,7 +13,8 @@ const user = {
    * @access  Private
    */
   getUsers: expressAsyncHandler(async (req, res) => {
-    const { limit = 20, page = 0, sortName, sortValue } = req.query
+    const { limit = 20, page = 1, sortName, sortValue } = req.query
+
     if (+limit && +page) {
       const users = await User.find({}, { password: 0 })
         .sort(sortValue ? { [sortName]: sortValue } : sortName)
@@ -22,7 +23,7 @@ const user = {
 
       const pageLists = Math.ceil((await User.find({}, { password: 0 })).length / limit)
 
-      res.status(200).json({ data: users, pageLists: pageLists || 1, page })
+      res.status(200).json({ page, data: users, pageLists: pageLists || 1, count: users.length })
     } else {
       const users = await User.find({}, { password: 0 }).sort(
         sortValue ? { [sortName]: sortValue } : sortName
@@ -347,7 +348,13 @@ const user = {
       page ? { $skip: +limit * (+page - 1) } : {},
     ])
       .then(response => {
-        if (response) res.status(200).json({ data: response })
+        if (response)
+          res.status(200).json({
+            page,
+            data: response,
+            count: response.length,
+            pageLists: Math.ceil(pageLists / limit),
+          })
         else res.status(400).json({ success: false, message: 'suppliers_not_found' })
       })
       .catch(error => res.status(400).json({ message: error.message, success: false }))
