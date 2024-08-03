@@ -18,7 +18,7 @@ router.post('/client', protect, admin, userAddField, user.addClientByAdmin)
 router
   .route('/client/:id')
   .get(protect, admin, user.getClientByAdmin)
-  .put(protect, admin, userUpdateField, user.editClientByAdmin)
+  .patch(protect, admin, user.editClientByAdmin)
   .delete(protect, admin, user.deleteClientByAdmin)
 router
   .route('/supplier')
@@ -27,7 +27,7 @@ router
 router
   .route('/supplier/:id')
   .get(protect, client, user.getSupplierByClient)
-  .put(protect, client, userUpdateField, user.editSupplierByClient)
+  .patch(protect, client, user.editSupplierByClient)
   .delete(protect, client, user.deleteSupplierByClient)
 
 export default router

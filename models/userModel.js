@@ -9,6 +9,7 @@ const userSchema = mongoose.Schema(
     role: { type: String, required: true, enum: ['admin', 'client', 'supplier'] },
     userId: { type: mongoose.Schema.Types.ObjectId, required: false, ref: 'users' },
     block: { type: Boolean, require: true, default: false },
+    free: { type: Boolean, require: true, default: false },
   },
   { timestamps: true }
 )

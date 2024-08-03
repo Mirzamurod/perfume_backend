@@ -369,7 +369,7 @@ const user = {
 
   /**
    * @desc    Edit Supplier by Client
-   * @route   PUT /api/users/supplier/:id
+   * @route   PATCH /api/users/supplier/:id
    * @access  Private
    */
   editSupplierByClient: expressAsyncHandler(async (req, res) => {
