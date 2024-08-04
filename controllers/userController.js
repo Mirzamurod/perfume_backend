@@ -151,6 +151,31 @@ const user = {
   }),
 
   /**
+   * @desc    Get Clients by Admin
+   * @route   GET /api/client
+   * @access  Private
+   */
+  getClientsByAdmin: expressAsyncHandler(async (req, res) => {
+    const { limit = 20, page = 1, sortName, sortValue } = req.query
+
+    const users = await User.find({ userId: req.user._id, role: 'client' }, { password: 0 })
+
+    await User.find({ userId: req.user._id, role: 'client' }, { password: 0 })
+      .sort(sortValue ? { [sortName]: sortValue } : sortName)
+      .limit(+limit)
+      .skip(+limit * (+page - 1))
+      .then(response =>
+        res.status(200).json({
+          page,
+          data: response,
+          pageLists: Math.ceil(users.length / limit) || 1,
+          count: users,
+        })
+      )
+      .catch(err => res.status(400).json({ message: 'clients_not_found', success: false }))
+  }),
+
+  /**
    * @desc    Add Client by Admin
    * @route   POST /api/users/client
    * @access  Private

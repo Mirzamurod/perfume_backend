@@ -5,7 +5,7 @@ import { userAddField, userLoginField, userUpdateField } from '../middleware/che
 
 const router = express.Router()
 
-// /api/users
+// /api
 router
   .route('/users')
   .get(protect, admin, user.getUsers)
@@ -14,7 +14,10 @@ router
   .delete(protect, user.delete)
 router.get('/users/profile', protect, user.getUser)
 router.post('/users/login', userLoginField, user.login)
-router.post('/client', protect, admin, userAddField, user.addClientByAdmin)
+router
+  .route('/client')
+  .get(protect, admin, user.getClientsByAdmin)
+  .post(protect, admin, userAddField, user.addClientByAdmin)
 router
   .route('/client/:id')
   .get(protect, admin, user.getClientByAdmin)
