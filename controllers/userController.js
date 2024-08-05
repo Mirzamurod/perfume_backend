@@ -169,7 +169,7 @@ const user = {
           page,
           data: response,
           pageLists: Math.ceil(users.length / limit) || 1,
-          count: users,
+          count: users.length,
         })
       )
       .catch(err => res.status(400).json({ message: 'clients_not_found', success: false }))
