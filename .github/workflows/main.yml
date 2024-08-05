@@ -1,0 +1,22 @@
+name: Build Image and Push Github Registry
+
+on: 
+  push:
+    branches: main
+
+jobs:
+  BuildAndPush: 
+    runs-on: runner_1
+    steps:
+      - name: Checking out
+        uses: actions/checkout@v4
+      - name: Docker login to Registry
+        uses: docker/login-action@v3.3.0
+        with: 
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{env.GITHUB_TOKEN}}
+      - name: Build
+        run: docker compose build --build-arg mode=production
+      - name: Push
+        run: docker compose push
