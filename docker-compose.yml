@@ -2,7 +2,7 @@ version: "3.4"
 
 services:
   client:
-    image: ${GITHUB_USERNAME-rep}/atir-frontend:latest
+    image: ${GITHUB_USERNAME-rep}/atir-backend:latest
     build:
       context: .
       dockerfile: Dockerfile
