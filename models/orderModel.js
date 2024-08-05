@@ -7,6 +7,7 @@ const orderSchema = mongoose.Schema(
     location: { type: [Number], required: false, trim: true },
     delivery_date: { type: Date, required: false, trim: true },
     payment_method: { type: String, required: true, trim: true, enum: ['cash', 'card'] },
+    address: { type: String, trim: true },
     status: {
       type: String,
       required: true,

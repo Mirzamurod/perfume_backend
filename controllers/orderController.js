@@ -153,7 +153,6 @@ const order = {
    * @route   POST /api/order
    * @access  Private
    */
-  // product_count_incorrect
   addOrder: expressAsyncHandler(async (req, res) => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) {
@@ -172,14 +171,19 @@ const order = {
         }
       })
 
-      await ProductGroup.bulkWrite(bulkOperations).catch(error =>
-        res.status(400).json({ success: false, message: error.message })
-      )
+      await Order.create({
+        ...req.body,
+        userId: req.user.id,
+        ...(req.body.supplierId ? { supplierId: req.body.supplierId } : { supplierId: null }),
+      })
+        .then(async response => {
+          if (response) {
+            await ProductGroup.bulkWrite(bulkOperations).catch(error =>
+              res.status(400).json({ success: false, message: error.message })
+            )
 
-      await Order.create({ ...req.body, userId: req.user.id })
-        .then(response => {
-          if (response) res.status(201).json({ success: true, message: 'order_added' })
-          else res.status(400).json({ success: false, message: 'order_data_invalid' })
+            res.status(201).json({ success: true, message: 'order_added' })
+          } else res.status(400).json({ success: false, message: 'order_data_invalid' })
         })
         .catch(error => res.status(400).json({ success: false, message: error.message }))
     }
@@ -191,9 +195,23 @@ const order = {
    * @access  Private
    */
   editOrder: expressAsyncHandler(async (req, res) => {
-    const changeOrder = async () =>
-      await Order.findByIdAndUpdate(req.params.id, { ...req.body }, { new: true })
-        .then(() => res.status(200).json({ success: true, message: 'order_updated' }))
+    const changeOrder = async bulkWrite =>
+      await Order.findByIdAndUpdate(
+        req.params.id,
+        {
+          ...req.body,
+          ...(req.body.supplierId ? { supplierId: req.body.supplierId } : { supplierId: null }),
+        },
+        { new: true }
+      )
+        .then(async () => {
+          if (bulkWrite)
+            await ProductGroup.bulkWrite(bulkWrite)
+              .then(async () => changeOrder())
+              .catch(error => res.status(400).json({ success: false, message: error.message }))
+
+          res.status(200).json({ success: true, message: 'order_updated' })
+        })
         .catch(error => res.status(400).json({ success: false, message: error.message }))
 
     await Order.findById(req.params.id)
@@ -241,9 +259,10 @@ const order = {
               }
             })
 
-            await ProductGroup.bulkWrite([...bulkOperations, ...deletedItems])
-              .then(async () => changeOrder())
-              .catch(error => res.status(400).json({ success: false, message: error.message }))
+            changeOrder([...bulkOperations, ...deletedItems])
+            // await ProductGroup.bulkWrite([...bulkOperations, ...deletedItems])
+            //   .then(async () => )
+            //   .catch(error => res.status(400).json({ success: false, message: error.message }))
           } else {
             if (response.status === 'cancelled') {
               const bulkOperations = response.perfumes.map(item => {
@@ -255,9 +274,11 @@ const order = {
                 }
               })
 
-              await ProductGroup.bulkWrite(bulkOperations)
-                .then(async () => changeOrder())
-                .catch(error => res.status(400).json({ success: false, message: error.message }))
+              changeOrder(bulkOperations)
+
+              // await ProductGroup.bulkWrite(bulkOperations)
+              //   .then(async () => )
+              //   .catch(error => res.status(400).json({ success: false, message: error.message }))
             } else if (req.body.status === 'cancelled') {
               const bulkOperations = response.perfumes.map(item => {
                 return {
@@ -268,9 +289,11 @@ const order = {
                 }
               })
 
-              await ProductGroup.bulkWrite(bulkOperations)
-                .then(async () => changeOrder())
-                .catch(error => res.status(400).json({ success: false, message: error.message }))
+              changeOrder(bulkOperations)
+
+              // await ProductGroup.bulkWrite(bulkOperations)
+              //   .then(async () => changeOrder())
+              //   .catch(error => res.status(400).json({ success: false, message: error.message }))
             } else changeOrder()
           }
         }
