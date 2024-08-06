@@ -9,7 +9,8 @@ services:
     restart: always
     environment:
       PORT: 8080
-      MONGO_URL: mongodb://$MONGO_USERNAME:$MONGO_PASSWORD@206.189.109.20:27017
+      MONGO_URL: $MONGO_URL
+      ACCESS_TOKEN_SECRET: $ACCESS_TOKEN_SECRET
     ports:
       - "9090:8080"
     volumes:

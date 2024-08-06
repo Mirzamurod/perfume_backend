@@ -85,9 +85,14 @@ const user = {
 
     const user = await User.findOne({ phone })
     if (user) {
-      if (await bcryptjs.compare(password, user.password))
-        res.status(200).json({ data: { token: generateToken(user._id) }, success: true })
-      else res.status(400).json({ success: false, message: 'phone_or_password_wrong' })
+      bcryptjs
+        .compare(password, user.password)
+        .then(response => {
+          if (response)
+            res.status(200).json({ data: { token: generateToken(user._id) }, success: true })
+          else res.status(400).json({ success: false, message: 'phone_or_password_wrong' })
+        })
+        .catch(err => res.status(400).json({ success: false, message: err.message }))
     } else
       res.status(400).json({ success: false, messages: [{ msg: 'user_not_found', path: 'phone' }] })
   }),
