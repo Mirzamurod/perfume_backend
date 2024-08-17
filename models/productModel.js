@@ -12,7 +12,7 @@ const productSchema = mongoose.Schema(
       trim: true,
       enum: ['winter' , 'spring' , 'summer' , 'autumn'],
     },
-    gender: { type: String, required: true, enum: ['boy', 'girl'] },
+    gender: { type: String, required: true, enum: ['male', 'female', 'unisex'] },
     persistence_of_the_smell: { type: Number, required: true, default: 1, trim: true },
     slug: { type: String, required: true, trim: true },
     userId: { type: mongoose.Types.ObjectId, required: true, ref: 'users' },

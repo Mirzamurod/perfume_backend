@@ -195,29 +195,37 @@ const order = {
    * @access  Private
    */
   editOrder: expressAsyncHandler(async (req, res) => {
-    const changeOrder = async bulkWrite =>
-      await Order.findByIdAndUpdate(
-        req.params.id,
-        {
-          ...req.body,
-          ...(req.body.supplierId ? { supplierId: req.body.supplierId } : { supplierId: null }),
-        },
-        { new: true }
-      )
-        .then(async () => {
-          if (bulkWrite)
-            await ProductGroup.bulkWrite(bulkWrite)
-              .then(async () => changeOrder())
-              .catch(error => res.status(400).json({ success: false, message: error.message }))
-
-          res.status(200).json({ success: true, message: 'order_updated' })
-        })
-        .catch(error => res.status(400).json({ success: false, message: error.message }))
-
     await Order.findById(req.params.id)
       .then(async response => {
         if (!response) res.status(400).json({ success: false, message: 'order_not_found' })
         else {
+          // change order
+          const changeOrder = async bulkWrite =>
+            await Order.findByIdAndUpdate(
+              req.params.id,
+              {
+                ...req.body,
+                ...(typeof req.body.supplierId === 'string'
+                  ? req.body?.supplierId?.length
+                    ? { supplierId: req.body.supplierId }
+                    : { supplierId: null }
+                  : { supplierId: response.supplierId }),
+              },
+              { new: true }
+            )
+              .then(async () => {
+                if (bulkWrite)
+                  await ProductGroup.bulkWrite(bulkWrite)
+                    .then(async () => changeOrder())
+                    .catch(error =>
+                      res.status(400).json({ success: false, message: error.message })
+                    )
+
+                res.status(200).json({ success: true, message: 'order_updated' })
+              })
+              .catch(error => res.status(400).json({ success: false, message: error.message }))
+
+          // change purchased product group
           if (req.body?.perfumes?.length) {
             const mergedItems1 = Object.values(
               response.perfumes.reduce((acc, { qty, id }) => {
