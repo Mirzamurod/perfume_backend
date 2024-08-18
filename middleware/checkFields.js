@@ -79,7 +79,6 @@ export const userUpdateField = [
 export const productAddField = [
   check('type').notEmpty().withMessage('type_required'),
   check('name').notEmpty().withMessage('name_required'),
-  check('color').notEmpty().withMessage('color_required'),
   check('smell').notEmpty().withMessage('smell_required'),
   check('season').notEmpty().withMessage('season_required'),
   check('gender').notEmpty().withMessage('gender_required'),
