@@ -122,3 +122,8 @@ export const purchasedProductAddField = [
     .isNumeric()
     .withMessage('sale_price_must_number'),
 ]
+
+export const settingAddField = [
+  check('botId').trim().notEmpty().withMessage('bot_id_required'),
+  check('groupId').trim().notEmpty().withMessage('group_id_required'),
+]

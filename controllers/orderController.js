@@ -1,8 +1,11 @@
 import expressAsyncHandler from 'express-async-handler'
 import Order from './../models/orderModel.js'
 import ProductGroup from '../models/productGroupModel.js'
+import Setting from '../models/settingModel.js'
+import User from '../models/userModel.js'
 import { validationResult } from 'express-validator'
 import { Types } from 'mongoose'
+import axios from 'axios'
 
 const order = {
   /**
@@ -182,6 +185,23 @@ const order = {
               res.status(400).json({ success: false, message: error.message })
             )
 
+            if (req.body.supplierId)
+              await User.findById(req.body.supplierId).then(
+                async supplier =>
+                  await Setting.findOne({ userId: req.user.id }).then(async resSetting => {
+                    if (resSetting) {
+                      let my_text = `
+Name: ${supplier.name} %0A
+Phone: ${supplier.phone} %0A
+Username: ${supplier.username} %0A
+Order link: http://206.189.109.20:8080/orders/view/${response.id} %0A`
+                      await axios.get(
+                        `https://api.telegram.org/bot${resSetting.botId}/sendMessage?chat_id=${resSetting.groupId}&text=${my_text}&parse_mode`
+                      )
+                    }
+                  })
+              )
+
             res.status(201).json({ success: true, message: 'order_added' })
           } else res.status(400).json({ success: false, message: 'order_data_invalid' })
         })
@@ -216,10 +236,28 @@ const order = {
               .then(async () => {
                 if (bulkWrite)
                   await ProductGroup.bulkWrite(bulkWrite)
-                    .then(async () => changeOrder())
+                    // .then(async () => changeOrder())
                     .catch(error =>
                       res.status(400).json({ success: false, message: error.message })
                     )
+
+                if (req.body.supplierId && !response.supplierId) {
+                  await User.findById(req.body.supplierId).then(
+                    async supplier =>
+                      await Setting.findOne({ userId: req.user.id }).then(async resSetting => {
+                        if (resSetting) {
+                          let my_text = `
+Name: ${supplier.name} %0A
+Phone: ${supplier.phone} %0A
+Username: ${supplier.username} %0A
+Order link: http://206.189.109.20:8080/orders/view/${req.params.id} %0A`
+                          await axios.get(
+                            `https://api.telegram.org/bot${resSetting.botId}/sendMessage?chat_id=${resSetting.groupId}&text=${my_text}&parse_mode`
+                          )
+                        }
+                      })
+                  )
+                }
 
                 res.status(200).json({ success: true, message: 'order_updated' })
               })
@@ -268,9 +306,6 @@ const order = {
             })
 
             changeOrder([...bulkOperations, ...deletedItems])
-            // await ProductGroup.bulkWrite([...bulkOperations, ...deletedItems])
-            //   .then(async () => )
-            //   .catch(error => res.status(400).json({ success: false, message: error.message }))
           } else {
             if (response.status === 'cancelled') {
               const bulkOperations = response.perfumes.map(item => {
@@ -283,10 +318,6 @@ const order = {
               })
 
               changeOrder(bulkOperations)
-
-              // await ProductGroup.bulkWrite(bulkOperations)
-              //   .then(async () => )
-              //   .catch(error => res.status(400).json({ success: false, message: error.message }))
             } else if (req.body.status === 'cancelled') {
               const bulkOperations = response.perfumes.map(item => {
                 return {
@@ -298,10 +329,6 @@ const order = {
               })
 
               changeOrder(bulkOperations)
-
-              // await ProductGroup.bulkWrite(bulkOperations)
-              //   .then(async () => changeOrder())
-              //   .catch(error => res.status(400).json({ success: false, message: error.message }))
             } else changeOrder()
           }
         }

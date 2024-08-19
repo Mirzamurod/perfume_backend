@@ -3,6 +3,7 @@ import mongoose from 'mongoose'
 const userSchema = mongoose.Schema(
   {
     name: { type: String, trim: true },
+    username: { type: String, trim: true },
     phone: { type: String, required: true, unique: true, trim: true },
     password: { type: String, required: true, trim: true },
     mode: { type: String, required: true, enum: ['dark', 'light'], default: 'dark' },

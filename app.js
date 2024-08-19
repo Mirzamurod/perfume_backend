@@ -9,6 +9,7 @@ import {
   productGroupRoutes,
   productRoutes,
   purchasedProductRoutes,
+  settingRoutes,
   userRoutes,
 } from './routes/index.js'
 
@@ -28,6 +29,7 @@ app.use('/api/product', productRoutes)
 app.use('/api/order', orderRoutes)
 app.use('/api/purchased-product', purchasedProductRoutes)
 app.use('/api/product-group', productGroupRoutes)
+app.use('/api/setting', settingRoutes)
 app.use('/*', (req, res) =>
   res.status(404).json({
     message: `${req.protocol + '://' + req.get('host') + req.originalUrl} url not found`,
