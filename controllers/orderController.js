@@ -210,6 +210,45 @@ Order link: http://206.189.109.20:8080/orders/view/${response.id} %0A`
   }),
 
   /**
+   * @desc    Add Order Link
+   * @route   POST /api/order/link/:user
+   * @access  Public
+   */
+  addOrderLink: expressAsyncHandler(async (req, res) => {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ messages: errors.array(), success: false })
+    }
+    const { user } = req.params
+
+    await Order.create({
+      ...req.body,
+      userId: user,
+      status: 'added',
+      perfumes: [{ id: req.body.product, qty: req.body.count }],
+    })
+      .then(async response => {
+        if (response) {
+          const bulkOperations = [
+            {
+              updateOne: {
+                filter: { product_id: req.body.product },
+                update: { $inc: { count: -Number(req.body.count) } },
+              },
+            },
+          ]
+
+          await ProductGroup.bulkWrite(bulkOperations).catch(error =>
+            res.status(400).json({ success: false, message: error.message })
+          )
+
+          res.status(201).json({ success: true, message: 'order_added' })
+        } else res.status(400).json({ success: false, message: 'order_data_invalid' })
+      })
+      .catch(error => res.status(400).json({ success: false, message: error.message }))
+  }),
+
+  /**
    * @desc    Edit Order
    * @route   PATCH /api/order/:id
    * @access  Private

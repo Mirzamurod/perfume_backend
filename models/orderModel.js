@@ -2,8 +2,8 @@ import mongoose from 'mongoose'
 
 const orderSchema = mongoose.Schema(
   {
-    phone: { type: String, trim: true },
-    name: { type: String, required: true, trim: true },
+    phone: { type: String, required: true, trim: true },
+    name: { type: String, trim: true },
     location: { type: [Number], required: false, trim: true },
     delivery_date: { type: Date, required: false, trim: true },
     payment_method: { type: String, required: true, trim: true, enum: ['cash', 'card'] },
